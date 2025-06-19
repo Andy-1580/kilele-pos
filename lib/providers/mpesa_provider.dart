@@ -1,31 +1,54 @@
+import 'package:flutter/material.dart';
+import '../services/mpesa_service.dart';
+import 'package:logger/logger.dart';
 import 'package:kilele_pos/models/mpesa_transaction.dart';
-import 'package:kilele_pos/services/mpesa_service.dart';
 import 'base_provider.dart';
 
-class MpesaProvider extends BaseProvider {
-  final IMpesaService _mpesaService;
+/// Provider for managing M-Pesa payment state and logic.
+class MpesaProvider extends ChangeNotifier {
+  final MpesaService _mpesaService;
+  final Logger _logger = Logger();
+
+  bool _isLoading = false;
+  String? _errorMessage;
+  Map<String, dynamic>? _lastResponse;
   MpesaTransaction? _currentTransaction;
   bool _isProcessing = false;
 
-  MpesaProvider({IMpesaService? mpesaService})
-      : _mpesaService = mpesaService ?? MpesaService();
+  MpesaProvider(this._mpesaService);
 
+  bool get isLoading => _isLoading;
+  String? get errorMessage => _errorMessage;
+  Map<String, dynamic>? get lastResponse => _lastResponse;
   MpesaTransaction? get currentTransaction => _currentTransaction;
   bool get isProcessing => _isProcessing;
 
-  Future<bool> initiatePayment({
-    required String phoneNumber,
+  /// Initiates a payment via M-Pesa STK Push.
+  Future<void> initiatePayment({
+    required String phone,
     required double amount,
-    required String accountReference,
-    String transactionDesc = 'Payment for goods/services',
+    String accountReference = 'POS',
+    String transactionDesc = 'POS Sale',
   }) async {
-    return handleAsync(() async {
+    _isLoading = true;
+    _errorMessage = null;
+    notifyListeners();
+    try {
+      final response = await _mpesaService.initiateStkPush(
+        phoneNumber: phone,
+        amount: amount,
+        accountReference: accountReference,
+        transactionDesc: transactionDesc,
+      );
+      _lastResponse = response;
+      _logger.i('M-Pesa payment success: $response');
+
       _isProcessing = true;
       notifyListeners();
 
       try {
         _currentTransaction = await _mpesaService.initiateSTKPush(
-          phoneNumber: phoneNumber,
+          phoneNumber: phone,
           amount: amount,
           accountReference: accountReference,
           transactionDesc: transactionDesc,
@@ -41,7 +64,13 @@ class MpesaProvider extends BaseProvider {
         _isProcessing = false;
         notifyListeners();
       }
-    });
+    } catch (e, stack) {
+      _errorMessage = e.toString();
+      _logger.e('M-Pesa payment failed', error: e, stackTrace: stack);
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
   }
 
   Future<void> _pollTransactionStatus(String checkoutRequestId) async {

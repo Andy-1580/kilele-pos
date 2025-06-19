@@ -1,15 +1,30 @@
+import 'package:flutter/material.dart';
 import '../models/product.dart';
 import '../services/supabase_service.dart';
 import 'base_provider.dart';
 
-class InventoryProvider extends BaseProvider {
+class InventoryProvider extends ChangeNotifier {
   final SupabaseService _supabaseService = SupabaseService();
-  List<Product> _products = [];
+  List<Product> _allProducts = [];
+  List<Product> _filteredProducts = [];
   String _searchQuery = '';
+  String _categoryFilter = 'all';
+  String _stockFilter = 'all';
+  String _sortBy = 'name';
+  bool _sortAsc = true;
+
+  // For analytics
+  final Map<String, int> _salesCount = {};
+
+  List<Product> get filteredProducts => List.unmodifiable(_filteredProducts);
+  List<String> get categories => [
+        'all',
+        ...{for (final p in _allProducts) p.category ?? ''}..remove('')
+      ];
 
   List<Product> get products {
-    if (_searchQuery.isEmpty) return _products;
-    return _products
+    if (_searchQuery.isEmpty) return _filteredProducts;
+    return _filteredProducts
         .where((product) =>
             product.name.toLowerCase().contains(_searchQuery.toLowerCase()) ||
             (product.barcode?.contains(_searchQuery) ?? false))
@@ -19,51 +34,80 @@ class InventoryProvider extends BaseProvider {
   String get searchQuery => _searchQuery;
 
   List<Product> get lowStockProducts =>
-      _products.where((p) => p.isLowStock).toList();
+      _filteredProducts.where((p) => p.isLowStock).toList();
   List<Product> get outOfStockProducts =>
-      _products.where((p) => p.isOutOfStock).toList();
+      _filteredProducts.where((p) => p.isOutOfStock).toList();
 
-  Future<void> loadProducts() async {
-    await handleAsync(() async {
-      // For now, we'll use dummy data until Supabase is set up
-      await Future.delayed(
-          const Duration(seconds: 1)); // Simulate network delay
-
-      _products = [
-        Product(
-          id: '1',
-          name: 'Coca Cola 500ml',
-          price: 50.0,
-          stockQuantity: 100,
-          barcode: '123456789',
-          category: 'Beverages',
-          costPrice: 35.0,
-          createdAt: DateTime.now(),
-          updatedAt: DateTime.now(),
-        ),
-        Product(
-          id: '2',
-          name: 'Bread White',
-          price: 60.0,
-          stockQuantity: 5,
-          barcode: '987654321',
-          category: 'Bakery',
-          costPrice: 45.0,
-          createdAt: DateTime.now(),
-          updatedAt: DateTime.now(),
-        ),
-      ];
-    });
+  void loadProducts([List<Product>? products]) {
+    if (products != null) {
+      _allProducts = products;
+    }
+    _applyFilters();
   }
 
-  void setSearchQuery(String query) {
+  void searchProducts(String query) {
     _searchQuery = query;
+    _applyFilters();
+  }
+
+  void filterByCategory(String category) {
+    _categoryFilter = category;
+    _applyFilters();
+  }
+
+  void filterByStock(String stock) {
+    _stockFilter = stock;
+    _applyFilters();
+  }
+
+  void sortBy(String sort, {bool asc = true}) {
+    _sortBy = sort;
+    _sortAsc = asc;
+    _applyFilters();
+  }
+
+  void recordSale(String productId) {
+    _salesCount[productId] = (_salesCount[productId] ?? 0) + 1;
+  }
+
+  int getSalesCount(String productId) => _salesCount[productId] ?? 0;
+
+  void _applyFilters() {
+    _filteredProducts = _allProducts.where((p) {
+      final matchesQuery = _searchQuery.isEmpty ||
+          p.name.toLowerCase().contains(_searchQuery.toLowerCase());
+      final matchesCategory =
+          _categoryFilter == 'all' || (p.category ?? '') == _categoryFilter;
+      final matchesStock = _stockFilter == 'all' ||
+          (_stockFilter == 'in' && p.stockQuantity > 0) ||
+          (_stockFilter == 'out' && p.stockQuantity == 0);
+      return matchesQuery && matchesCategory && matchesStock;
+    }).toList();
+    _filteredProducts.sort((a, b) {
+      int cmp = 0;
+      switch (_sortBy) {
+        case 'name':
+          cmp = a.name.compareTo(b.name);
+          break;
+        case 'price':
+          cmp = a.price.compareTo(b.price);
+          break;
+        case 'stock':
+          cmp = a.stockQuantity.compareTo(b.stockQuantity);
+          break;
+        case 'sales':
+          cmp = getSalesCount(a.id).compareTo(getSalesCount(b.id));
+          break;
+      }
+      return _sortAsc ? cmp : -cmp;
+    });
     notifyListeners();
   }
 
   Product? findProductByBarcode(String barcode) {
     try {
-      return _products.firstWhere((product) => product.barcode == barcode);
+      return _filteredProducts
+          .firstWhere((product) => product.barcode == barcode);
     } catch (e) {
       return null;
     }

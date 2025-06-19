@@ -5,9 +5,12 @@ import '../providers/inventory_provider.dart';
 import '../widgets/dashboard_card.dart';
 import '../widgets/recent_transactions.dart';
 import '../widgets/quick_actions.dart';
+import '../providers/transaction_history_provider.dart';
+import '../models/product.dart';
+import '../models/transaction_record.dart';
 
 class DashboardScreen extends StatefulWidget {
-  const DashboardScreen({Key? key}) : super(key: key);
+  const DashboardScreen({super.key});
 
   @override
   State<DashboardScreen> createState() => _DashboardScreenState();
@@ -24,9 +27,41 @@ class _DashboardScreenState extends State<DashboardScreen> {
     final posProvider = Provider.of<POSProvider>(context, listen: false);
     final inventoryProvider =
         Provider.of<InventoryProvider>(context, listen: false);
+    final historyProvider =
+        Provider.of<TransactionHistoryProvider>(context, listen: false);
 
     posProvider.loadTodaysSales();
     inventoryProvider.loadLowStockItems();
+
+    // Top products by sales
+    final productSales = <String, int>{};
+    for (final tx in historyProvider.transactions) {
+      if (tx.type == 'mpesa' || tx.type == 'etims') {
+        final items = tx.details['items'] as List<dynamic>?;
+        if (items != null) {
+          for (final item in items) {
+            final name = item['name'] as String?;
+            final qty = item['quantity'] as int? ?? 1;
+            if (name != null) {
+              productSales[name] = (productSales[name] ?? 0) + qty;
+            }
+          }
+        }
+      }
+    }
+    final topProducts = productSales.entries.toList()
+      ..sort((a, b) => b.value.compareTo(a.value));
+
+    // Top customers by frequency
+    final customerCounts = <String, int>{};
+    for (final tx in historyProvider.transactions) {
+      final phone = tx.details['phone']?.toString() ?? '';
+      if (phone.isNotEmpty) {
+        customerCounts[phone] = (customerCounts[phone] ?? 0) + 1;
+      }
+    }
+    final topCustomers = customerCounts.entries.toList()
+      ..sort((a, b) => b.value.compareTo(a.value));
   }
 
   @override
@@ -119,6 +154,53 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   ),
                   const SizedBox(height: 16),
                   const RecentTransactions(),
+
+                  const SizedBox(height: 24),
+                  const Text('Top Products',
+                      style:
+                          TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                  const SizedBox(height: 8),
+                  if (topProducts.isEmpty)
+                    const Text('No sales data yet.')
+                  else
+                    SizedBox(
+                      height: 200,
+                      child: ListView.builder(
+                        itemCount:
+                            topProducts.length > 5 ? 5 : topProducts.length,
+                        itemBuilder: (context, i) {
+                          final entry = topProducts[i];
+                          return ListTile(
+                            leading: CircleAvatar(child: Text('${i + 1}')),
+                            title: Text(entry.key),
+                            trailing: Text('Sold: ${entry.value}'),
+                          );
+                        },
+                      ),
+                    ),
+                  const SizedBox(height: 24),
+                  const Text('Top Customers',
+                      style:
+                          TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                  const SizedBox(height: 8),
+                  if (topCustomers.isEmpty)
+                    const Text('No customer data yet.')
+                  else
+                    SizedBox(
+                      height: 200,
+                      child: ListView.builder(
+                        itemCount:
+                            topCustomers.length > 5 ? 5 : topCustomers.length,
+                        itemBuilder: (context, i) {
+                          final entry = topCustomers[i];
+                          return ListTile(
+                            leading: CircleAvatar(child: Text('${i + 1}')),
+                            title: Text(entry.key),
+                            trailing: Text('Transactions: ${entry.value}'),
+                          );
+                        },
+                      ),
+                    ),
                 ],
               ),
             ),
@@ -128,8 +210,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
       floatingActionButton: FloatingActionButton(
         onPressed: () => Navigator.pushNamed(context, '/pos'),
         backgroundColor: Theme.of(context).primaryColor,
-        child: const Icon(Icons.add_shopping_cart, color: Colors.white),
         tooltip: 'New Sale',
+        child: const Icon(Icons.add_shopping_cart, color: Colors.white),
       ),
     );
   }

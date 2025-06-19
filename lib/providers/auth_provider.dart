@@ -1,48 +1,96 @@
+import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../services/supabase_service.dart';
 import 'base_provider.dart';
 
-class AuthProvider extends BaseProvider {
-  final ISupabaseService _supabaseService;
-  User? _user;
+/// AuthProvider manages Supabase authentication and user profile state.
+class AuthProvider extends ChangeNotifier {
+  final SupabaseClient _client = Supabase.instance.client;
 
-  User? get user => _user;
-  bool get isAuthenticated => _user != null;
+  bool _isLoading = false;
+  String? _error;
+  Map<String, dynamic>? _profile;
 
-  AuthProvider({ISupabaseService? supabaseService})
-      : _supabaseService = supabaseService ?? SupabaseService() {
-    _initialize();
+  bool get isLoading => _isLoading;
+  String? get error => _error;
+  Map<String, dynamic>? get profile => _profile;
+  bool get isLoggedIn => _profile != null;
+
+  /// Register a new user and insert into users table
+  Future<void> register(String email, String password, String name) async {
+    _isLoading = true;
+    _error = null;
+    notifyListeners();
+    try {
+      final response =
+          await _client.auth.signUp(email: email, password: password);
+      final user = response.user;
+      if (user == null) throw Exception('Sign up failed');
+      // Insert into users table
+      await _client.from('users').insert({
+        'auth_uid': user.id,
+        'email': email,
+        'name': name,
+        'is_admin': false,
+      });
+      // Fetch profile
+      await fetchProfile();
+    } catch (e) {
+      _error = e.toString();
+    }
+    _isLoading = false;
+    notifyListeners();
   }
 
-  void _initialize() {
-    Supabase.instance.client.auth.onAuthStateChange.listen((data) {
-      _user = data.session?.user;
-      setLoading(false);
-      notifyListeners();
-    });
+  /// Login and fetch user profile
+  Future<void> login(String email, String password) async {
+    _isLoading = true;
+    _error = null;
+    notifyListeners();
+    try {
+      final response = await _client.auth
+          .signInWithPassword(email: email, password: password);
+      if (response.user == null) throw Exception('Login failed');
+      await fetchProfile();
+    } catch (e) {
+      _error = e.toString();
+    }
+    _isLoading = false;
+    notifyListeners();
   }
 
-  Future<bool> signIn(String email, String password) async {
-    return handleAsync(() async {
-      final response = await _supabaseService.signIn(email, password);
-      if (response.user != null) {
-        _user = response.user;
-        return true;
+  /// Fetch user profile from users table
+  Future<void> fetchProfile() async {
+    try {
+      final user = _client.auth.currentUser;
+      if (user == null) {
+        _profile = null;
+        return;
       }
-      setError('Login failed. Please check your credentials.');
-      return false;
-    });
+      final data =
+          await _client.from('users').select().eq('auth_uid', user.id).single();
+      _profile = data;
+    } catch (e) {
+      _profile = null;
+      _error = e.toString();
+    }
+    notifyListeners();
   }
 
-  Future<void> signOut() async {
-    await handleAsync(() async {
-      await _supabaseService.signOut();
-      _user = null;
-    });
+  /// Logout and clear profile
+  Future<void> logout() async {
+    await _client.auth.signOut();
+    _profile = null;
+    notifyListeners();
   }
 
-  @override
-  void clearError() {
-    setError(null);
+  /// Send password reset email
+  Future<void> sendPasswordReset(String email) async {
+    try {
+      await _client.auth.resetPasswordForEmail(email);
+    } catch (e) {
+      _error = e.toString();
+      notifyListeners();
+    }
   }
 }
