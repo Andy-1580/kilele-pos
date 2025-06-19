@@ -1,0 +1,176 @@
+{
+    "projectName": "Kilele POS",
+    "version": "1.0.0",
+    "rules": {
+      "codeStyle": {
+        "flutter": {
+          "naming": {
+            "file": "snake_case",
+            "variable": "snake_case",
+            "class": "PascalCase",
+            "method": "camelCase"
+          },
+          "constPreferred": true,
+          "finalPreferred": true,
+          "documentation": true,
+          "commonPatterns": {
+            "folderStructure": [
+              "lib/models/",
+              "lib/services/",
+              "lib/providers/",
+              "lib/screens/",
+              "lib/widgets/",
+              "lib/utils/"
+            ],
+            "stateManagement": "Provider",
+            "network": "API calls in Services",
+            "storage": "Supabase + SQLite fallback"
+          }
+        }
+      },
+      "formatting": {
+        "indentSize": 2,
+        "lineLength": 80,
+        "useTabs": false
+      },
+      "linting": {
+        "enforceNullSafety": true,
+        "enforceConstConstructors": true,
+        "enforceFinalFields": true,
+        "enforcePrivateFields": true
+      },
+      "filePatterns": {
+        "models": "lib/models/**/*.dart",
+        "providers": "lib/providers/**/*.dart",
+        "services": "lib/services/**/*.dart",
+        "screens": "lib/screens/**/*.dart",
+        "widgets": "lib/widgets/**/*.dart",
+        "utils": "lib/utils/**/*.dart"
+      },
+      "ignorePatterns": [
+        "**/*.g.dart",
+        "**/*.freezed.dart",
+        "**/*.config.dart",
+        "**/*.mocks.dart",
+        "**/generated/**",
+        "**/build/**",
+        ".dart_tool/**",
+        "build/**"
+      ],
+      "documentation": {
+        "requireDocumentation": true,
+        "documentationStyle": "dartdoc",
+        "requirePublicApiDocumentation": true
+      },
+      "testing": {
+        "testPattern": "test/**/*_test.dart",
+        "integrationTestPattern": "integration_test/**/*_test.dart",
+        "requireTests": true,
+        "types": [
+          "unit",
+          "integration",
+          "widget"
+        ],
+        "mockExternalDependencies": true
+      },
+      "dependencies": {
+        "enforceVersionConstraints": true,
+        "allowPreRelease": false
+      },
+      "git": {
+        "branchNaming": "feature/*, bugfix/*, hotfix/*",
+        "commitMessageFormat": "type(scope): description",
+        "requirePullRequest": true
+      },
+      "security": {
+        "enforceAPIKeyValidation": true,
+        "enforceEncryption": true,
+        "enforceSecureStorage": true,
+        "validateUserInputs": true,
+        "useHttps": true
+      },
+      "performance": {
+        "maxFileSize": 1000,
+        "maxFunctionLength": 50,
+        "maxClassLength": 500,
+        "optimizeDatabaseQueries": true,
+        "lazyLoadWhereAppropriate": true,
+        "minimizeUnnecessaryRebuilds": true
+      },
+      "errorHandling": {
+        "customExceptions": true,
+        "fallbackHandlers": true,
+        "networkTimeouts": true,
+        "logContext": true,
+        "userFriendlyMessages": true
+      },
+      "uiDesign": {
+        "followMaterialDesign": true,
+        "adaptiveDesign": true,
+        "loadingStates": true,
+        "errorDialogs": true,
+        "colorSchemeConsistency": true,
+        "accessibilityFeatures": true
+      },
+      "localDevelopment": {
+        "useMockServer": true,
+        "networkLogging": true,
+        "debugEnvironment": true,
+        "offlineScenarios": true
+      },
+      "specificImplementation": {
+        "newFeatureSteps": [
+          "check PROJECT_PLAN.md",
+          "read API docs",
+          "update models",
+          "implement service",
+          "add to provider",
+          "update UI components",
+          "write tests",
+          "update docs"
+        ],
+        "bugFixSteps": [
+          "reproduce",
+          "add failing test",
+          "implement fix",
+          "verify all tests pass",
+          "update docs if needed"
+        ],
+        "newDependencySteps": [
+          "verify necessity",
+          "check maintenance",
+          "add to pubspec.yaml",
+          "update docs"
+        ],
+        "fileNaming": {
+          "screens": "*_screen.dart",
+          "widgets": "*_widget.dart",
+          "services": "*_service.dart",
+          "providers": "*_provider.dart",
+          "models": "*.dart",
+          "tests": "*_test.dart"
+        }
+      }
+    },
+    "recommendations": {
+      "extensions": [
+        "Dart",
+        "Flutter",
+        "Dart Data Class Generator",
+        "Bloc",
+        "Error Lens",
+        "GitLens",
+        "Pubspec Assist"
+      ],
+      "settings": {
+        "editor.formatOnSave": true,
+        "editor.formatOnType": true,
+        "editor.rulers": [80],
+        "editor.wordWrap": "off",
+        "editor.suggestSelection": "first",
+        "editor.tabCompletion": "onlySnippets",
+        "editor.bracketPairColorization": true,
+        "editor.guides.bracketPairs": true
+      }
+    }
+  }  

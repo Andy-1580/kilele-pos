@@ -1,0 +1,88 @@
+# Flutter/Dart/Pub related
+.dart_tool/
+.packages
+.pub/
+.pub-cache/
+build/
+.flutter-plugins
+.flutter-plugins-dependencies
+.metadata
+
+# IDEs and editors
+.idea/
+.vscode/
+*.iml
+*.ipr
+*.iws
+*.swp
+
+# OS generated files
+.DS_Store
+Thumbs.db
+
+# Generated files
+**/*.g.dart
+**/*.freezed.dart
+**/*.config.dart
+**/*.mocks.dart
+**/generated/**
+*.g.dart
+*.freezed.dart
+
+# Android
+android/.gradle/
+android/app/build/
+android/local.properties
+
+# iOS
+ios/Flutter/App.framework
+ios/Flutter/Flutter.framework
+ios/Flutter/ephemeral/
+ios/Flutter/Generated.xcconfig
+ios/Flutter/app.flx
+ios/Flutter/app.zip
+ios/Flutter/flutter_assets/
+ios/Flutter/flutter_export_environment.sh
+ios/ServiceDefinitions.json
+ios/Runner/GeneratedPluginRegistrant.*
+ios/Pods/
+ios/.symlinks/
+ios/DerivedData/
+
+# macOS
+macos/Flutter/ephemeral/
+macos/Flutter/GeneratedPluginRegistrant.swift
+macos/Runner/Configs/*.xcconfig
+macos/Runner.xcworkspace/xcshareddata/IDEWorkspaceChecks.plist
+
+# Linux
+linux/flutter/ephemeral/
+
+# Windows
+windows/flutter/ephemeral/
+
+# Web
+web/generated/
+
+# Misc
+*.log
+*.tmp
+*.bak
+*.lock
+
+# Coverage
+coverage/
+
+# Environment variables
+.env
+.env.*
+.env.local
+.env.production
+
+# API Keys (NEVER commit these)
+lib/config/api_keys.dart
+android/app/google-services.json
+ios/Runner/GoogleService-Info.plist
+
+# Other
+flutter_*.png
