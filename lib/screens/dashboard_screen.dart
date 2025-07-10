@@ -6,8 +6,6 @@ import '../widgets/dashboard_card.dart';
 import '../widgets/recent_transactions.dart';
 import '../widgets/quick_actions.dart';
 import '../providers/transaction_history_provider.dart';
-import '../models/product.dart';
-import '../models/transaction_record.dart';
 
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
@@ -17,6 +15,9 @@ class DashboardScreen extends StatefulWidget {
 }
 
 class _DashboardScreenState extends State<DashboardScreen> {
+  List<MapEntry<String, int>> _topProducts = [];
+  List<MapEntry<String, int>> _topCustomers = [];
+
   @override
   void initState() {
     super.initState();
@@ -62,6 +63,11 @@ class _DashboardScreenState extends State<DashboardScreen> {
     }
     final topCustomers = customerCounts.entries.toList()
       ..sort((a, b) => b.value.compareTo(a.value));
+
+    setState(() {
+      _topProducts = topProducts;
+      _topCustomers = topCustomers;
+    });
   }
 
   @override
@@ -153,23 +159,26 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
                   ),
                   const SizedBox(height: 16),
-                  const RecentTransactions(),
+                  RecentTransactions(
+                    transactions: const [], // TODO: Replace with real orders if available
+                    onTransactionTap: (order) {},
+                  ),
 
                   const SizedBox(height: 24),
                   const Text('Top Products',
                       style:
                           TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
                   const SizedBox(height: 8),
-                  if (topProducts.isEmpty)
+                  if (_topProducts.isEmpty)
                     const Text('No sales data yet.')
                   else
                     SizedBox(
                       height: 200,
                       child: ListView.builder(
                         itemCount:
-                            topProducts.length > 5 ? 5 : topProducts.length,
+                            _topProducts.length > 5 ? 5 : _topProducts.length,
                         itemBuilder: (context, i) {
-                          final entry = topProducts[i];
+                          final entry = _topProducts[i];
                           return ListTile(
                             leading: CircleAvatar(child: Text('${i + 1}')),
                             title: Text(entry.key),
@@ -183,16 +192,16 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       style:
                           TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
                   const SizedBox(height: 8),
-                  if (topCustomers.isEmpty)
+                  if (_topCustomers.isEmpty)
                     const Text('No customer data yet.')
                   else
                     SizedBox(
                       height: 200,
                       child: ListView.builder(
                         itemCount:
-                            topCustomers.length > 5 ? 5 : topCustomers.length,
+                            _topCustomers.length > 5 ? 5 : _topCustomers.length,
                         itemBuilder: (context, i) {
-                          final entry = topCustomers[i];
+                          final entry = _topCustomers[i];
                           return ListTile(
                             leading: CircleAvatar(child: Text('${i + 1}')),
                             title: Text(entry.key),

@@ -1,10 +1,26 @@
 import 'package:flutter/material.dart';
 
+/// A widget that blocks interaction and displays an overlay when offline.
+///
+/// Wrap any feature or screen with [OfflineBlocker] to prevent usage when
+/// [isOnline] is false. Shows a semi-transparent overlay and a message.
 class OfflineBlocker extends StatelessWidget {
+  /// The child widget to display when online.
   final Widget child;
+
+  /// Whether the app is currently online.
   final bool isOnline;
+
+  /// Optional message to display when offline.
   final String? message;
 
+  /// The default message shown when offline.
+  static const String _defaultMessage =
+      'This feature is unavailable while offline.';
+
+  /// Creates an [OfflineBlocker].
+  ///
+  /// [child] is required. [isOnline] controls the overlay.
   const OfflineBlocker({
     super.key,
     required this.child,
@@ -13,9 +29,11 @@ class OfflineBlocker extends StatelessWidget {
   });
 
   void _showOfflineMessage(BuildContext context) {
+    assert(ScaffoldMessenger.maybeOf(context) != null,
+        'OfflineBlocker requires a ScaffoldMessenger ancestor.');
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text(message ?? 'This feature is unavailable while offline.'),
+        content: Text(message ?? _defaultMessage),
         duration: const Duration(seconds: 2),
       ),
     );
@@ -39,7 +57,6 @@ class OfflineBlocker extends StatelessWidget {
                 ? const SizedBox.shrink()
                 : Semantics(
                     label: 'Feature unavailable while offline',
-                    liveRegion: true,
                     child: GestureDetector(
                       behavior: HitTestBehavior.translucent,
                       onTap: () => _showOfflineMessage(context),
@@ -56,7 +73,7 @@ class OfflineBlocker extends StatelessWidget {
                                   semanticLabel: 'Offline'),
                               const SizedBox(height: 8),
                               Text(
-                                message ?? 'Feature unavailable offline',
+                                message ?? _defaultMessage,
                                 style: const TextStyle(
                                     color: Colors.white, fontSize: 16),
                                 textAlign: TextAlign.center,

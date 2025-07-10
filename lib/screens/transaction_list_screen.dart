@@ -10,7 +10,7 @@ class TransactionListScreen extends StatelessWidget {
   void _showTransactionDialog(BuildContext context, {POSTransaction? tx}) {
     final isEdit = tx != null;
     final totalController =
-        TextEditingController(text: tx?.total?.toString() ?? '');
+        TextEditingController(text: tx?.total.toString() ?? '');
     final paymentMethodController =
         TextEditingController(text: tx?.paymentMethod ?? 'Cash');
     final customerNameController =
@@ -49,7 +49,7 @@ class TransactionListScreen extends StatelessWidget {
               if (isEdit)
                 Padding(
                   padding: const EdgeInsets.only(top: 8.0),
-                  child: Text('Date: ${tx!.createdAt}'),
+                  child: Text('Date: ${tx.createdAt}'),
                 ),
             ],
           ),
@@ -103,12 +103,16 @@ class TransactionListScreen extends StatelessWidget {
                 );
                 try {
                   await provider.addTransaction(newTx);
-                  ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('Transaction added')));
-                  Navigator.pop(context);
+                  if (context.mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text('Transaction added')));
+                    Navigator.pop(context);
+                  }
                 } catch (e) {
-                  ScaffoldMessenger.of(context)
-                      .showSnackBar(SnackBar(content: Text('Error: $e')));
+                  if (context.mounted) {
+                    ScaffoldMessenger.of(context)
+                        .showSnackBar(SnackBar(content: Text('Error: $e')));
+                  }
                 }
               },
               child: const Text('Add'),

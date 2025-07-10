@@ -7,6 +7,7 @@ import '../providers/etims_provider.dart';
 import 'package:uuid/uuid.dart';
 import 'package:printing/printing.dart';
 import 'package:pdf/widgets.dart' as pw;
+import 'package:pdf/pdf.dart';
 import 'dart:convert';
 
 class TransactionHistoryScreen extends StatefulWidget {
@@ -30,8 +31,9 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
     final etimsProvider = Provider.of<EtimsProvider>(context, listen: false);
     final historyProvider =
         Provider.of<TransactionHistoryProvider>(context, listen: false);
-    final uuid = const Uuid();
-    ScaffoldMessenger.of(context).showSnackBar(
+    final messenger = ScaffoldMessenger.of(context);
+    const uuid = Uuid();
+    messenger.showSnackBar(
       const SnackBar(content: Text('Retrying transaction...')),
     );
     try {
@@ -39,59 +41,83 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
         final phone = tx.details['phone'] ?? '';
         final amount = tx.amount;
         await mpesaProvider.initiatePayment(phone: phone, amount: amount);
-        historyProvider.addTransaction(TransactionRecord(
-          id: uuid.v4(),
-          type: 'mpesa',
-          status: mpesaProvider.errorMessage == null ? 'success' : 'failed',
-          date: DateTime.now(),
-          amount: amount,
-          details: mpesaProvider.lastResponse ?? {},
-          errorMessage: mpesaProvider.errorMessage,
-        ));
         if (mpesaProvider.errorMessage == null) {
-          ScaffoldMessenger.of(context).showSnackBar(
+          historyProvider.addTransaction(TransactionRecord(
+            id: uuid.v4(),
+            type: 'mpesa',
+            status: 'success',
+            date: DateTime.now(),
+            amount: amount,
+            details: mpesaProvider.lastResponse ?? {},
+            errorMessage: null,
+          ));
+          messenger.showSnackBar(
             const SnackBar(
-                content: Text('M-Pesa retry successful!'),
-                backgroundColor: Colors.green),
+              content: Text('M-Pesa retry successful!'),
+              backgroundColor: Colors.green,
+            ),
           );
         } else {
-          ScaffoldMessenger.of(context).showSnackBar(
+          historyProvider.addTransaction(TransactionRecord(
+            id: uuid.v4(),
+            type: 'mpesa',
+            status: 'failed',
+            date: DateTime.now(),
+            amount: amount,
+            details: mpesaProvider.lastResponse ?? {},
+            errorMessage: mpesaProvider.errorMessage,
+          ));
+          messenger.showSnackBar(
             SnackBar(
-                content:
-                    Text('M-Pesa retry failed: ${mpesaProvider.errorMessage}'),
-                backgroundColor: Colors.red),
+              content:
+                  Text('M-Pesa retry failed: ${mpesaProvider.errorMessage}'),
+              backgroundColor: Colors.red,
+            ),
           );
         }
       } else if (tx.type == 'etims') {
         final invoiceData = tx.details;
         final amount = tx.amount;
         await etimsProvider.submitInvoice(invoiceData);
-        historyProvider.addTransaction(TransactionRecord(
-          id: uuid.v4(),
-          type: 'etims',
-          status: etimsProvider.errorMessage == null ? 'success' : 'failed',
-          date: DateTime.now(),
-          amount: amount,
-          details: etimsProvider.lastResponse ?? {},
-          errorMessage: etimsProvider.errorMessage,
-        ));
+        final messenger = ScaffoldMessenger.of(context);
         if (etimsProvider.errorMessage == null) {
-          ScaffoldMessenger.of(context).showSnackBar(
+          historyProvider.addTransaction(TransactionRecord(
+            id: uuid.v4(),
+            type: 'etims',
+            status: 'success',
+            date: DateTime.now(),
+            amount: amount,
+            details: etimsProvider.lastResponse ?? {},
+            errorMessage: null,
+          ));
+          messenger.showSnackBar(
             const SnackBar(
-                content: Text('eTIMS retry successful!'),
-                backgroundColor: Colors.green),
+              content: Text('eTIMS retry successful!'),
+              backgroundColor: Colors.green,
+            ),
           );
         } else {
-          ScaffoldMessenger.of(context).showSnackBar(
+          historyProvider.addTransaction(TransactionRecord(
+            id: uuid.v4(),
+            type: 'etims',
+            status: 'failed',
+            date: DateTime.now(),
+            amount: amount,
+            details: etimsProvider.lastResponse ?? {},
+            errorMessage: etimsProvider.errorMessage,
+          ));
+          messenger.showSnackBar(
             SnackBar(
-                content:
-                    Text('eTIMS retry failed: ${etimsProvider.errorMessage}'),
-                backgroundColor: Colors.red),
+              content:
+                  Text('eTIMS retry failed: ${etimsProvider.errorMessage}'),
+              backgroundColor: Colors.red,
+            ),
           );
         }
       }
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
+      final messenger = ScaffoldMessenger.of(context);
+      messenger.showSnackBar(
         SnackBar(content: Text('Retry error: $e'), backgroundColor: Colors.red),
       );
     }
@@ -118,7 +144,7 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
             if (tx.errorMessage != null) ...[
               pw.SizedBox(height: 8),
               pw.Text('Error: ${tx.errorMessage}',
-                  style: pw.TextStyle(color: PdfColor.fromInt(0xFFFF0000))),
+                  style: const pw.TextStyle(color: PdfColors.red)),
             ],
           ],
         ),
@@ -340,8 +366,8 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
                                                   crossAxisAlignment:
                                                       CrossAxisAlignment.start,
                                                   children: [
-                                                    Text('API Response:',
-                                                        style: const TextStyle(
+                                                    const Text('API Response:',
+                                                        style: TextStyle(
                                                             fontWeight:
                                                                 FontWeight
                                                                     .bold)),
@@ -352,14 +378,13 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
                                                     if (tx.errorMessage !=
                                                         null) ...[
                                                       const SizedBox(height: 8),
-                                                      Text('Error:',
-                                                          style:
-                                                              const TextStyle(
-                                                                  fontWeight:
-                                                                      FontWeight
-                                                                          .bold,
-                                                                  color: Colors
-                                                                      .red)),
+                                                      const Text('Error:',
+                                                          style: TextStyle(
+                                                              fontWeight:
+                                                                  FontWeight
+                                                                      .bold,
+                                                              color:
+                                                                  Colors.red)),
                                                       Text(tx.errorMessage!),
                                                     ],
                                                   ],

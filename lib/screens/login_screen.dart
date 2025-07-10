@@ -64,6 +64,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       ? null
                       : () async {
                           if (!_formKey.currentState!.validate()) return;
+                          final nav = Navigator.of(context);
                           if (_isRegister) {
                             await authProvider.register(
                               _emailController.text.trim(),
@@ -78,7 +79,7 @@ class _LoginScreenState extends State<LoginScreen> {
                           }
                           if (authProvider.error == null &&
                               authProvider.isLoggedIn) {
-                            Navigator.of(context).pushReplacementNamed('/');
+                            nav.pushReplacementNamed('/');
                           }
                         },
                   child: Text(_isRegister ? 'Register' : 'Login'),
@@ -93,14 +94,15 @@ class _LoginScreenState extends State<LoginScreen> {
                   TextButton(
                     onPressed: () async {
                       if (_emailController.text.isEmpty) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(
-                                content: Text('Enter your email first')));
+                        final messenger = ScaffoldMessenger.of(context);
+                        messenger.showSnackBar(const SnackBar(
+                            content: Text('Enter your email first')));
                         return;
                       }
+                      final messenger = ScaffoldMessenger.of(context);
                       await authProvider
                           .sendPasswordReset(_emailController.text.trim());
-                      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+                      messenger.showSnackBar(const SnackBar(
                           content: Text(
                               'Password reset email sent (if account exists)')));
                     },

@@ -1,5 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import '../lib/models/product.dart';
+import 'package:kilele_pos/models/product.dart';
 
 void main() {
   group('Product Model Tests', () {

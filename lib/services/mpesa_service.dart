@@ -27,10 +27,14 @@ class MpesaService extends BaseService implements IMpesaService {
   factory MpesaService() => _instance;
   MpesaService._internal();
 
-  // TODO: Move these to environment variables or secure storage
-  static const String _passkey = 'YOUR_PASSKEY';
-  static const String _shortcode = 'YOUR_SHORTCODE';
-  static const String _callbackUrl = 'YOUR_CALLBACK_URL';
+  /// M-Pesa API passkey (should be set in .env)
+  final String _passkey = dotenv.env['MPESA_PASSKEY'] ?? '';
+
+  /// M-Pesa shortcode (should be set in .env)
+  final String _shortcode = dotenv.env['MPESA_SHORTCODE'] ?? '';
+
+  /// Callback URL for M-Pesa (should be set in .env)
+  final String _callbackUrl = dotenv.env['MPESA_CALLBACK_URL'] ?? '';
 
   String? _accessToken;
   DateTime? _tokenExpiry;

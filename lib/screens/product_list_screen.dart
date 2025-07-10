@@ -2,122 +2,69 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/product_provider.dart';
 import '../models/product.dart';
+import '../widgets/product_form_dialog.dart';
+import '../widgets/confirmation_dialog.dart';
 
-class ProductListScreen extends StatelessWidget {
+class ProductListScreen extends StatefulWidget {
   const ProductListScreen({super.key});
 
-  void _showProductDialog(BuildContext context, {Product? product}) {
-    final isEdit = product != null;
-    final nameController = TextEditingController(text: product?.name ?? '');
-    final priceController =
-        TextEditingController(text: product?.price?.toString() ?? '');
-    final stockController =
-        TextEditingController(text: product?.stockQuantity?.toString() ?? '');
-    final formKey = GlobalKey<FormState>();
+  @override
+  State<ProductListScreen> createState() => _ProductListScreenState();
+}
 
+class _ProductListScreenState extends State<ProductListScreen> {
+  void _showProductDialog(BuildContext context, {Product? product}) {
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        title: Text(isEdit ? 'Edit Product' : 'Add Product'),
-        content: Form(
-          key: formKey,
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              TextFormField(
-                controller: nameController,
-                decoration: const InputDecoration(labelText: 'Name'),
-                validator: (v) => v == null || v.isEmpty ? 'Required' : null,
-              ),
-              TextFormField(
-                controller: priceController,
-                decoration: const InputDecoration(labelText: 'Price'),
-                keyboardType: TextInputType.number,
-                validator: (v) => v == null || double.tryParse(v) == null
-                    ? 'Enter valid price'
-                    : null,
-              ),
-              TextFormField(
-                controller: stockController,
-                decoration: const InputDecoration(labelText: 'Stock'),
-                keyboardType: TextInputType.number,
-                validator: (v) => v == null || int.tryParse(v) == null
-                    ? 'Enter valid stock'
-                    : null,
-              ),
-            ],
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel'),
-          ),
-          ElevatedButton(
-            onPressed: () async {
-              if (!formKey.currentState!.validate()) return;
-              final provider =
-                  Provider.of<ProductProvider>(context, listen: false);
-              final newProduct = Product(
-                id: product?.id ?? '',
-                name: nameController.text,
-                price: double.parse(priceController.text),
-                stockQuantity: int.parse(stockController.text),
+      builder: (dialogContext) => ProductFormDialog(
+        product: product,
+        onSave: (newProduct) async {
+          final provider = Provider.of<ProductProvider>(context, listen: false);
+          final messenger = ScaffoldMessenger.of(context);
+          try {
+            if (product != null) {
+              await provider.updateProduct(newProduct);
+              messenger.showSnackBar(
+                const SnackBar(content: Text('Product updated')),
               );
-              try {
-                if (isEdit) {
-                  await provider.updateProduct(newProduct);
-                  ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('Product updated')));
-                } else {
-                  await provider.addProduct(newProduct);
-                  ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('Product added')));
-                }
-                Navigator.pop(context);
-              } catch (e) {
-                ScaffoldMessenger.of(context)
-                    .showSnackBar(SnackBar(content: Text('Error: $e')));
-              }
-            },
-            child: Text(isEdit ? 'Update' : 'Add'),
-          ),
-        ],
+            } else {
+              await provider.addProduct(newProduct);
+              messenger.showSnackBar(
+                const SnackBar(content: Text('Product added')),
+              );
+            }
+          } catch (e) {
+            messenger.showSnackBar(
+              SnackBar(content: Text('Error: $e')),
+            );
+          }
+        },
       ),
     );
   }
 
-  void _confirmDelete(BuildContext context, Product product) {
-    showDialog(
+  void _confirmDelete(BuildContext context, Product product) async {
+    final confirmed = await ConfirmationDialog.show(
       context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Delete Product'),
-        content: Text('Are you sure you want to delete "${product.name}"?'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel'),
-          ),
-          ElevatedButton(
-            onPressed: () async {
-              final provider =
-                  Provider.of<ProductProvider>(context, listen: false);
-              try {
-                await provider.deleteProduct(product.id);
-                Navigator.pop(context);
-                ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Product deleted')));
-              } catch (e) {
-                Navigator.pop(context);
-                ScaffoldMessenger.of(context)
-                    .showSnackBar(SnackBar(content: Text('Error: $e')));
-              }
-            },
-            child: const Text('Delete'),
-          ),
-        ],
-      ),
+      title: 'Delete Product',
+      message: 'Are you sure you want to delete "${product.name}"?',
+      confirmText: 'Delete',
+      confirmColor: Colors.red,
     );
+    if (confirmed) {
+      final provider = Provider.of<ProductProvider>(context, listen: false);
+      final messenger = ScaffoldMessenger.of(context);
+      try {
+        await provider.deleteProduct(product.id);
+        messenger.showSnackBar(
+          const SnackBar(content: Text('Product deleted')),
+        );
+      } catch (e) {
+        messenger.showSnackBar(
+          SnackBar(content: Text('Error: $e')),
+        );
+      }
+    }
   }
 
   @override

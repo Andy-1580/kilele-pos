@@ -6,7 +6,7 @@ import '../widgets/product_form_dialog.dart';
 import '../widgets/product_card.dart';
 
 class InventoryScreen extends StatefulWidget {
-  const InventoryScreen({Key? key}) : super(key: key);
+  const InventoryScreen({super.key});
 
   @override
   State<InventoryScreen> createState() => _InventoryScreenState();
@@ -86,7 +86,7 @@ class _InventoryScreenState extends State<InventoryScreen> {
                             onChanged: (value) {
                               setState(() => _selectedCategory = value!);
                               inventoryProvider.filterByCategory(
-                                value == 'All' ? null : value,
+                                value == 'All' ? '' : value!,
                               );
                             },
                           );
@@ -114,7 +114,7 @@ class _InventoryScreenState extends State<InventoryScreen> {
                         onChanged: (value) {
                           setState(() => _sortBy = value!);
                           Provider.of<InventoryProvider>(context, listen: false)
-                              .sortProducts(value);
+                              .sortProducts(value!);
                         },
                       ),
                     ),
@@ -207,8 +207,8 @@ class _InventoryScreenState extends State<InventoryScreen> {
       floatingActionButton: FloatingActionButton(
         onPressed: _addProduct,
         backgroundColor: Theme.of(context).primaryColor,
-        child: const Icon(Icons.add, color: Colors.white),
         tooltip: 'Add Product',
+        child: const Icon(Icons.add, color: Colors.white),
       ),
     );
   }
@@ -294,7 +294,7 @@ class _InventoryScreenState extends State<InventoryScreen> {
 
   void _updateStock(Product product) {
     final TextEditingController stockController =
-        TextEditingController(text: product.stock.toString());
+        TextEditingController(text: product.stockQuantity.toString());
 
     showDialog(
       context: context,
@@ -331,10 +331,12 @@ class _InventoryScreenState extends State<InventoryScreen> {
     Provider.of<InventoryProvider>(context, listen: false)
         .exportInventory()
         .then((_) {
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Inventory exported successfully')),
       );
     }).catchError((error) {
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Export failed: $error')),
       );
@@ -345,10 +347,12 @@ class _InventoryScreenState extends State<InventoryScreen> {
     Provider.of<InventoryProvider>(context, listen: false)
         .importInventory()
         .then((_) {
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Inventory imported successfully')),
       );
     }).catchError((error) {
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Import failed: $error')),
       );

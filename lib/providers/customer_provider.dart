@@ -1,61 +1,21 @@
-import 'package:flutter/material.dart';
 import '../models/customer.dart';
 import '../services/customer_service.dart';
+import 'crud_provider.dart';
 
-class CustomerProvider extends ChangeNotifier {
-  final CustomerService _service = CustomerService();
-  List<Customer> _customers = [];
-  bool _isLoading = false;
-  String? _error;
+class CustomerProvider extends CrudProvider<Customer> {
+  CustomerProvider()
+      : super(
+          fetchAll: () => CustomerService().fetchAll(),
+          create: (customer) => CustomerService().create(customer),
+          update: (customer) => CustomerService().update(customer),
+          delete: (id) => CustomerService().delete(id),
+          getId: (customer) => customer.id,
+        );
 
-  List<Customer> get customers => _customers;
-  bool get isLoading => _isLoading;
-  String? get error => _error;
+  List<Customer> get customers => items;
 
-  Future<void> loadCustomers() async {
-    _isLoading = true;
-    _error = null;
-    notifyListeners();
-    try {
-      _customers = await _service.fetchAll();
-    } catch (e) {
-      _error = e.toString();
-    }
-    _isLoading = false;
-    notifyListeners();
-  }
-
-  Future<void> addCustomer(Customer customer) async {
-    try {
-      final newCustomer = await _service.create(customer);
-      _customers.add(newCustomer);
-      notifyListeners();
-    } catch (e) {
-      _error = e.toString();
-      notifyListeners();
-    }
-  }
-
-  Future<void> updateCustomer(Customer customer) async {
-    try {
-      final updated = await _service.update(customer);
-      final idx = _customers.indexWhere((c) => c.id == customer.id);
-      if (idx != -1) _customers[idx] = updated;
-      notifyListeners();
-    } catch (e) {
-      _error = e.toString();
-      notifyListeners();
-    }
-  }
-
-  Future<void> deleteCustomer(String id) async {
-    try {
-      await _service.delete(id);
-      _customers.removeWhere((c) => c.id == id);
-      notifyListeners();
-    } catch (e) {
-      _error = e.toString();
-      notifyListeners();
-    }
-  }
+  Future<void> loadCustomers() => loadItems();
+  Future<void> addCustomer(Customer customer) => addItem(customer);
+  Future<void> updateCustomer(Customer customer) => updateItem(customer);
+  Future<void> deleteCustomer(String id) => deleteItem(id);
 }

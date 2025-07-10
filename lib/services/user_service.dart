@@ -1,57 +1,40 @@
 import 'package:supabase_flutter/supabase_flutter.dart';
-import '../models/user.dart';
+import '../models/user.dart' as app_user;
 
 class UserService {
   final _client = Supabase.instance.client;
 
-  Future<List<User>> fetchAll() async {
-    final response = await _client
-        .from('users')
-        .select()
-        .withConverter<List<User>>(
-          (data) => (data as List).map((json) => User.fromJson(json)).toList(),
-        )
-        .execute();
-    if (response.error != null) throw response.error!;
-    return response.data;
+  Future<List<app_user.User>> fetchAll() async {
+    final response = await _client.from('users').select();
+    return (response as List)
+        .map((json) => app_user.User.fromJson(json))
+        .toList();
   }
 
-  Future<User?> fetchById(String id) async {
+  Future<app_user.User?> fetchById(String id) async {
     final response =
         await _client.from('users').select().eq('id', id).maybeSingle();
-    if (response.error != null) throw response.error!;
-    if (response.data == null) return null;
-    return User.fromJson(response.data);
+    if (response == null) return null;
+    return app_user.User.fromJson(response);
   }
 
-  Future<User> create(User user) async {
-    final response = await _client
-        .from('users')
-        .insert(user.toJson())
-        .select()
-        .maybeSingle();
-    if (response.error != null) throw response.error!;
-    return User.fromJson(response.data);
+  Future<app_user.User> create(app_user.User user) async {
+    final response =
+        await _client.from('users').insert(user.toJson()).select().single();
+    return app_user.User.fromJson(response);
   }
 
-  Future<User> update(User user) async {
+  Future<app_user.User> update(app_user.User user) async {
     final response = await _client
         .from('users')
         .update(user.toJson())
         .eq('id', user.id)
         .select()
-        .maybeSingle();
-    if (response.error != null) throw response.error!;
-    return User.fromJson(response.data);
+        .single();
+    return app_user.User.fromJson(response);
   }
 
   Future<void> delete(String id) async {
-    final response = await _client
-        .from('users')
-        .delete()
-        .eq('id', id)
-        .select()
-        .maybeSingle();
-    if (response.error != null) throw response.error!;
+    await _client.from('users').delete().eq('id', id);
   }
 }

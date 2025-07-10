@@ -46,27 +46,27 @@ class UserListScreen extends StatelessWidget {
               if (!formKey.currentState!.validate()) return;
               final provider =
                   Provider.of<UserProvider>(context, listen: false);
-              final now = DateTime.now();
+              final messenger = ScaffoldMessenger.of(context);
+              final nav = Navigator.of(context);
               final newUser = User(
                 id: user?.id ?? '',
                 email: emailController.text,
                 name: nameController.text,
-                createdAt: now,
+                isAdmin: user?.isAdmin ?? false,
               );
               try {
                 if (isEdit) {
                   await provider.updateUser(newUser);
-                  ScaffoldMessenger.of(context).showSnackBar(
+                  messenger.showSnackBar(
                       const SnackBar(content: Text('User updated')));
                 } else {
                   await provider.addUser(newUser);
-                  ScaffoldMessenger.of(context).showSnackBar(
+                  messenger.showSnackBar(
                       const SnackBar(content: Text('User added')));
                 }
-                Navigator.pop(context);
+                nav.pop();
               } catch (e) {
-                ScaffoldMessenger.of(context)
-                    .showSnackBar(SnackBar(content: Text('Error: $e')));
+                messenger.showSnackBar(SnackBar(content: Text('Error: $e')));
               }
             },
             child: Text(isEdit ? 'Update' : 'Add'),
@@ -81,8 +81,7 @@ class UserListScreen extends StatelessWidget {
       context: context,
       builder: (context) => AlertDialog(
         title: const Text('Delete User'),
-        content:
-            Text('Are you sure you want to delete "${user.email ?? user.id}"?'),
+        content: Text('Are you sure you want to delete "${user.email}"?'),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
@@ -92,15 +91,16 @@ class UserListScreen extends StatelessWidget {
             onPressed: () async {
               final provider =
                   Provider.of<UserProvider>(context, listen: false);
+              final messenger = ScaffoldMessenger.of(context);
+              final nav = Navigator.of(context);
               try {
                 await provider.deleteUser(user.id);
-                Navigator.pop(context);
-                ScaffoldMessenger.of(context).showSnackBar(
+                nav.pop();
+                messenger.showSnackBar(
                     const SnackBar(content: Text('User deleted')));
               } catch (e) {
-                Navigator.pop(context);
-                ScaffoldMessenger.of(context)
-                    .showSnackBar(SnackBar(content: Text('Error: $e')));
+                nav.pop();
+                messenger.showSnackBar(SnackBar(content: Text('Error: $e')));
               }
             },
             child: const Text('Delete'),
@@ -130,8 +130,8 @@ class UserListScreen extends StatelessWidget {
             itemBuilder: (context, i) {
               final user = provider.users[i];
               return ListTile(
-                title: Text(user.email ?? user.id),
-                subtitle: Text(user.name ?? ''),
+                title: Text(user.email),
+                subtitle: Text(user.name),
                 trailing: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [

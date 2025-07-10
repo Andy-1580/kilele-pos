@@ -1,3 +1,5 @@
+import 'package:flutter/material.dart';
+
 class ErrorHandler {
   static void handleError(BuildContext context, dynamic error) {
     String message = 'An unexpected error occurred';
@@ -12,4 +14,14 @@ class ErrorHandler {
       SnackBar(content: Text(message)),
     );
   }
+}
+
+class NetworkException implements Exception {
+  final String message;
+  NetworkException([this.message = 'Network error']);
+}
+
+class ValidationException implements Exception {
+  final String message;
+  ValidationException([this.message = 'Validation error']);
 }

@@ -41,20 +41,16 @@ abstract class BaseService {
     int? offset,
   }) async {
     try {
-      var query = _client.from(table).select();
-
+      dynamic query = _client.from(table).select();
       if (orderBy != null) {
         query = query.order(orderBy, ascending: !descending);
       }
-
       if (limit != null) {
         query = query.limit(limit);
       }
-
       if (offset != null) {
         query = query.range(offset, offset + (limit ?? 10) - 1);
       }
-
       final response = await query;
       return response.map((json) => fromJson(json)).toList();
     } catch (e, stackTrace) {

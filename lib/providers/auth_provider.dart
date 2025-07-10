@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-import '../services/supabase_service.dart';
-import 'base_provider.dart';
 
 /// AuthProvider manages Supabase authentication and user profile state.
 class AuthProvider extends ChangeNotifier {
@@ -93,4 +91,10 @@ class AuthProvider extends ChangeNotifier {
       notifyListeners();
     }
   }
+
+  // Add this getter to expose the current user (adjust as needed for your logic)
+  dynamic get user =>
+      _profile; // Replace _profile with your actual user/session variable
+
+  SupabaseClient get client => _client;
 }

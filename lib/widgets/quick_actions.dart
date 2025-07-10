@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 class QuickActions extends StatelessWidget {
-  const QuickActions({Key? key}) : super(key: key);
+  const QuickActions({super.key});
 
   @override
   Widget build(BuildContext context) {

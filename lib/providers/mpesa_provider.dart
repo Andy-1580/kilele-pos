@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import '../services/mpesa_service.dart';
 import 'package:logger/logger.dart';
 import 'package:kilele_pos/models/mpesa_transaction.dart';
-import 'base_provider.dart';
 
 /// Provider for managing M-Pesa payment state and logic.
 class MpesaProvider extends ChangeNotifier {
@@ -24,7 +23,7 @@ class MpesaProvider extends ChangeNotifier {
   bool get isProcessing => _isProcessing;
 
   /// Initiates a payment via M-Pesa STK Push.
-  Future<void> initiatePayment({
+  Future<bool> initiatePayment({
     required String phone,
     required double amount,
     String accountReference = 'POS',
@@ -71,6 +70,7 @@ class MpesaProvider extends ChangeNotifier {
       _isLoading = false;
       notifyListeners();
     }
+    return false;
   }
 
   Future<void> _pollTransactionStatus(String checkoutRequestId) async {
@@ -91,7 +91,7 @@ class MpesaProvider extends ChangeNotifier {
           break;
         }
       } catch (e) {
-        logError('Error polling transaction status', e);
+        _logger.e('Error polling transaction status', error: e);
         break;
       }
 

@@ -6,7 +6,7 @@ import 'package:mockito/mockito.dart';
 import 'package:mockito/annotations.dart';
 import 'package:kilele_pos/services/supabase_service.dart';
 import 'package:kilele_pos/providers/auth_provider.dart';
-import 'package:kilele_pos/providers/lib/providers/lib/providers/pos_provider.dart';
+import 'package:kilele_pos/providers/pos_provider.dart';
 import 'package:kilele_pos/providers/inventory_provider.dart';
 
 @GenerateMocks([SupabaseClient, SupabaseService])

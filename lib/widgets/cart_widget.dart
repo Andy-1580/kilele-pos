@@ -1,8 +1,7 @@
-// lib/widgets/cart_widget.dart
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/pos_provider.dart';
-import '../models/transaction.dart';
+import 'cart_item_card.dart';
 
 class CartWidget extends StatelessWidget {
   const CartWidget({super.key});
@@ -58,61 +57,22 @@ class CartWidget extends StatelessWidget {
                 itemCount: pos.cartItems.length,
                 itemBuilder: (context, index) {
                   final cartItem = pos.cartItems[index];
-                  return _buildCartItem(context, cartItem, pos);
+                  return CartItemCard(
+                    cartItem: cartItem,
+                    onQuantityChanged: (newQuantity) {
+                      pos.updateCartItemQuantity(
+                          cartItem.product.id, newQuantity);
+                    },
+                    onRemove: () {
+                      pos.removeFromCart(cartItem.product.id);
+                    },
+                  );
                 },
               ),
             ),
           ],
         );
       },
-    );
-  }
-
-  Widget _buildCartItem(
-      BuildContext context, TransactionItem cartItem, POSProvider pos) {
-    return Card(
-      margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-      child: Padding(
-        padding: const EdgeInsets.all(8.0),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    cartItem.product.name,
-                    style: const TextStyle(fontWeight: FontWeight.bold),
-                  ),
-                  Text(
-                    'KSh ${cartItem.product.price.toStringAsFixed(2)}',
-                    style: const TextStyle(color: Colors.grey),
-                  ),
-                ],
-              ),
-            ),
-            IconButton(
-              icon: const Icon(Icons.delete, color: Colors.red),
-              onPressed: () => pos.removeFromCart(cartItem.product.id),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class LoadingOverlay extends StatelessWidget {
-  const LoadingOverlay({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      color: Colors.black45,
-      child: const Center(
-        child: CircularProgressIndicator(),
-      ),
     );
   }
 }

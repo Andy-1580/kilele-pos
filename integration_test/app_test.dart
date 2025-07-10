@@ -1,6 +1,13 @@
-import 'package:flutter_test/flutter_test.dart';
+import 'package:flutter/material.dart';
 import 'package:integration_test/integration_test.dart';
+import 'package:flutter_test/flutter_test.dart';
 import 'package:kilele_pos/main.dart' as app;
+import 'package:kilele_pos/screens/login_screen.dart';
+import 'package:kilele_pos/screens/main_dashboard.dart';
+import 'package:kilele_pos/screens/pos_screen.dart';
+import 'package:kilele_pos/screens/inventory_screen.dart';
+import 'package:kilele_pos/widgets/cart_widget.dart';
+import 'package:kilele_pos/widgets/searchable_list.dart';
 import '../test/helpers/test_helpers.dart';
 
 void main() {

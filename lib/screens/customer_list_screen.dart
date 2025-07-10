@@ -3,9 +3,14 @@ import 'package:provider/provider.dart';
 import '../providers/customer_provider.dart';
 import '../models/customer.dart';
 
-class CustomerListScreen extends StatelessWidget {
+class CustomerListScreen extends StatefulWidget {
   const CustomerListScreen({super.key});
 
+  @override
+  State<CustomerListScreen> createState() => _CustomerListScreenState();
+}
+
+class _CustomerListScreenState extends State<CustomerListScreen> {
   void _showCustomerDialog(BuildContext context, {Customer? customer}) {
     final isEdit = customer != null;
     final nameController = TextEditingController(text: customer?.name ?? '');
@@ -15,7 +20,7 @@ class CustomerListScreen extends StatelessWidget {
 
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
+      builder: (dialogContext) => AlertDialog(
         title: Text(isEdit ? 'Edit Customer' : 'Add Customer'),
         content: Form(
           key: formKey,
@@ -44,14 +49,14 @@ class CustomerListScreen extends StatelessWidget {
         ),
         actions: [
           TextButton(
-            onPressed: () => Navigator.pop(context),
+            onPressed: () => Navigator.pop(dialogContext),
             child: const Text('Cancel'),
           ),
           ElevatedButton(
             onPressed: () async {
               if (!formKey.currentState!.validate()) return;
               final provider =
-                  Provider.of<CustomerProvider>(context, listen: false);
+                  Provider.of<CustomerProvider>(dialogContext, listen: false);
               final now = DateTime.now();
               final newCustomer = Customer(
                 id: customer?.id ?? '',
@@ -61,21 +66,23 @@ class CustomerListScreen extends StatelessWidget {
                 phone:
                     phoneController.text.isEmpty ? null : phoneController.text,
                 createdAt: now,
+                updatedAt: now,
               );
+              final nav = Navigator.of(dialogContext);
+              final messenger = ScaffoldMessenger.of(context);
+              nav.pop(); // Pop dialog before await
               try {
                 if (isEdit) {
                   await provider.updateCustomer(newCustomer);
-                  ScaffoldMessenger.of(context).showSnackBar(
+                  messenger.showSnackBar(
                       const SnackBar(content: Text('Customer updated')));
                 } else {
                   await provider.addCustomer(newCustomer);
-                  ScaffoldMessenger.of(context).showSnackBar(
+                  messenger.showSnackBar(
                       const SnackBar(content: Text('Customer added')));
                 }
-                Navigator.pop(context);
               } catch (e) {
-                ScaffoldMessenger.of(context)
-                    .showSnackBar(SnackBar(content: Text('Error: $e')));
+                messenger.showSnackBar(SnackBar(content: Text('Error: $e')));
               }
             },
             child: Text(isEdit ? 'Update' : 'Add'),
@@ -88,28 +95,27 @@ class CustomerListScreen extends StatelessWidget {
   void _confirmDelete(BuildContext context, Customer customer) {
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
+      builder: (dialogContext) => AlertDialog(
         title: const Text('Delete Customer'),
-        content: Text(
-            'Are you sure you want to delete "${customer.name ?? customer.id}"?'),
+        content: Text('Are you sure you want to delete "${customer.name}"?'),
         actions: [
           TextButton(
-            onPressed: () => Navigator.pop(context),
+            onPressed: () => Navigator.pop(dialogContext),
             child: const Text('Cancel'),
           ),
           ElevatedButton(
             onPressed: () async {
               final provider =
-                  Provider.of<CustomerProvider>(context, listen: false);
+                  Provider.of<CustomerProvider>(dialogContext, listen: false);
+              final nav = Navigator.of(dialogContext);
+              final messenger = ScaffoldMessenger.of(context);
+              nav.pop(); // Pop dialog before await
               try {
                 await provider.deleteCustomer(customer.id);
-                Navigator.pop(context);
-                ScaffoldMessenger.of(context).showSnackBar(
+                messenger.showSnackBar(
                     const SnackBar(content: Text('Customer deleted')));
               } catch (e) {
-                Navigator.pop(context);
-                ScaffoldMessenger.of(context)
-                    .showSnackBar(SnackBar(content: Text('Error: $e')));
+                messenger.showSnackBar(SnackBar(content: Text('Error: $e')));
               }
             },
             child: const Text('Delete'),
@@ -139,7 +145,7 @@ class CustomerListScreen extends StatelessWidget {
             itemBuilder: (context, i) {
               final customer = provider.customers[i];
               return ListTile(
-                title: Text(customer.name ?? customer.id),
+                title: Text(customer.name),
                 subtitle: Text(customer.email ?? customer.phone ?? ''),
                 trailing: Row(
                   mainAxisSize: MainAxisSize.min,

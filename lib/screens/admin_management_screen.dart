@@ -36,8 +36,8 @@ class _AdminManagementScreenState extends State<AdminManagementScreen> {
                     final user = userProvider.users[i];
                     final isCurrent = user.id == currentUserId;
                     return ListTile(
-                      title: Text(user.email ?? user.id),
-                      subtitle: Text(user.name ?? ''),
+                      title: Text(user.email),
+                      subtitle: Text(user.name),
                       trailing: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
@@ -50,6 +50,7 @@ class _AdminManagementScreenState extends State<AdminManagementScreen> {
                                   ? 'Demote from Admin'
                                   : 'Promote to Admin',
                               onPressed: () async {
+                                final messenger = ScaffoldMessenger.of(context);
                                 final confirm = await showDialog<bool>(
                                   context: context,
                                   builder: (context) => AlertDialog(
@@ -72,18 +73,22 @@ class _AdminManagementScreenState extends State<AdminManagementScreen> {
                                 );
                                 if (confirm == true) {
                                   try {
-                                    await authProvider._client
+                                    await authProvider.client
                                         .from('users')
                                         .update({
                                       'is_admin': user.isAdmin != true
                                     }).eq('id', user.id);
                                     await userProvider.loadUsers();
-                                    ScaffoldMessenger.of(context).showSnackBar(
-                                        SnackBar(
-                                            content: Text('User updated')));
+                                    if (!mounted) return;
+                                    messenger.showSnackBar(
+                                      const SnackBar(
+                                          content: Text('User updated')),
+                                    );
                                   } catch (e) {
-                                    ScaffoldMessenger.of(context).showSnackBar(
-                                        SnackBar(content: Text('Error: $e')));
+                                    if (!mounted) return;
+                                    messenger.showSnackBar(
+                                      SnackBar(content: Text('Error: $e')),
+                                    );
                                   }
                                 }
                               },
@@ -93,12 +98,14 @@ class _AdminManagementScreenState extends State<AdminManagementScreen> {
                               icon: const Icon(Icons.delete),
                               tooltip: 'Delete User',
                               onPressed: () async {
+                                if (!mounted) return;
+                                final messenger = ScaffoldMessenger.of(context);
                                 final confirm = await showDialog<bool>(
                                   context: context,
                                   builder: (context) => AlertDialog(
                                     title: const Text('Delete User'),
                                     content: Text(
-                                        'Are you sure you want to delete ${user.email ?? user.id}?'),
+                                        'Are you sure you want to delete ${user.email}?'),
                                     actions: [
                                       TextButton(
                                           onPressed: () =>
@@ -113,17 +120,21 @@ class _AdminManagementScreenState extends State<AdminManagementScreen> {
                                 );
                                 if (confirm == true) {
                                   try {
-                                    await authProvider._client
+                                    await authProvider.client
                                         .from('users')
                                         .delete()
                                         .eq('id', user.id);
                                     await userProvider.loadUsers();
-                                    ScaffoldMessenger.of(context).showSnackBar(
-                                        const SnackBar(
-                                            content: Text('User deleted')));
+                                    if (!mounted) return;
+                                    messenger.showSnackBar(
+                                      const SnackBar(
+                                          content: Text('User deleted')),
+                                    );
                                   } catch (e) {
-                                    ScaffoldMessenger.of(context).showSnackBar(
-                                        SnackBar(content: Text('Error: $e')));
+                                    if (!mounted) return;
+                                    messenger.showSnackBar(
+                                      SnackBar(content: Text('Error: $e')),
+                                    );
                                   }
                                 }
                               },
@@ -133,17 +144,22 @@ class _AdminManagementScreenState extends State<AdminManagementScreen> {
                               icon: const Icon(Icons.lock_reset),
                               tooltip: 'Reset Password',
                               onPressed: () async {
-                                if (user.email == null) return;
+                                if (!mounted) return;
+                                final messenger = ScaffoldMessenger.of(context);
                                 try {
                                   await authProvider
-                                      .sendPasswordReset(user.email!);
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                      const SnackBar(
-                                          content: Text(
-                                              'Password reset email sent')));
+                                      .sendPasswordReset(user.email);
+                                  if (!mounted) return;
+                                  messenger.showSnackBar(
+                                    const SnackBar(
+                                        content:
+                                            Text('Password reset email sent')),
+                                  );
                                 } catch (e) {
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                      SnackBar(content: Text('Error: $e')));
+                                  if (!mounted) return;
+                                  messenger.showSnackBar(
+                                    SnackBar(content: Text('Error: $e')),
+                                  );
                                 }
                               },
                             ),

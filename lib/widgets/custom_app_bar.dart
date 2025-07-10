@@ -36,13 +36,13 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
                 onSelected: (value) {
                   switch (value) {
                     case 'profile':
-                      // TODO: Navigate to profile screen
+                      Navigator.of(context).pushNamed('/profile');
                       break;
                     case 'settings':
-                      // TODO: Navigate to settings screen
+                      Navigator.of(context).pushNamed('/settings');
                       break;
                     case 'logout':
-                      auth.signOut();
+                      auth.logout();
                       break;
                   }
                 },
@@ -53,7 +53,7 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
                       children: [
                         const Icon(Icons.person),
                         const SizedBox(width: 8),
-                        Text(auth.currentUser?.email ?? 'Profile'),
+                        Text(auth.profile?['email'] ?? 'Profile'),
                       ],
                     ),
                   ),

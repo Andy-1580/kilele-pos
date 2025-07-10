@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:kilele_pos/models/order.dart';
+import '../models/order.dart';
+import '../models/order_status.dart';
 import 'package:kilele_pos/utils/theme.dart';
 import 'package:intl/intl.dart';
 
@@ -47,8 +48,7 @@ class RecentTransactions extends StatelessWidget {
         return ListTile(
           onTap: () => onTransactionTap(transaction),
           leading: CircleAvatar(
-            backgroundColor:
-                _getStatusColor(transaction.status).withOpacity(0.1),
+            backgroundColor: _getStatusColor(transaction.status).withAlpha(25),
             child: Icon(
               _getStatusIcon(transaction.status),
               color: _getStatusColor(transaction.status),
@@ -61,7 +61,7 @@ class RecentTransactions extends StatelessWidget {
                 ),
           ),
           subtitle: Text(
-            DateFormat('MMM d, y • h:mm a').format(transaction.createdAt),
+            DateFormat('MMM d, y • h:mm a').format(transaction.date),
             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                   color: Theme.of(context).colorScheme.onSurfaceVariant,
                 ),
@@ -99,8 +99,6 @@ class RecentTransactions extends StatelessWidget {
         return AppColors.warning;
       case OrderStatus.cancelled:
         return AppColors.error;
-      default:
-        return AppColors.primary;
     }
   }
 
@@ -112,8 +110,6 @@ class RecentTransactions extends StatelessWidget {
         return Icons.pending;
       case OrderStatus.cancelled:
         return Icons.cancel;
-      default:
-        return Icons.receipt;
     }
   }
 }

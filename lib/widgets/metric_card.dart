@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:kilele_pos/utils/theme.dart';
 
 class MetricCard extends StatelessWidget {
   final String title;

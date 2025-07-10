@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/auth_provider.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 class UserProfileScreen extends StatefulWidget {
   const UserProfileScreen({super.key});
@@ -78,9 +79,11 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                       ? null
                       : () async {
                           if (!_formKey.currentState!.validate()) return;
+                          final messenger = ScaffoldMessenger.of(context);
                           setState(() => _saving = true);
                           try {
-                            await authProvider._client.auth.updateUser(
+                            final client = Supabase.instance.client;
+                            await client.auth.updateUser(
                               UserAttributes(
                                   email: _newEmailController.text.trim()),
                             );
@@ -90,10 +93,9 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                               _saving = false;
                               _error = null;
                             });
-                            ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(
-                                    content: Text(
-                                        'Email update requested. Check your inbox.')));
+                            messenger.showSnackBar(const SnackBar(
+                                content: Text(
+                                    'Email update requested. Check your inbox.')));
                           } catch (e) {
                             setState(() {
                               _saving = false;
@@ -127,20 +129,22 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                       ? null
                       : () async {
                           if (!_formKey.currentState!.validate()) return;
+                          final messenger = ScaffoldMessenger.of(context);
                           setState(() => _saving = true);
                           try {
-                            await authProvider._client.auth.updateUser(
+                            final client = Supabase.instance.client;
+                            await client.auth.updateUser(
                               UserAttributes(
                                   password: _passwordController.text.trim()),
                             );
+                            await authProvider.fetchProfile();
                             setState(() {
                               _editingPassword = false;
                               _saving = false;
                               _error = null;
                             });
-                            ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(
-                                    content: Text('Password updated.')));
+                            messenger.showSnackBar(const SnackBar(
+                                content: Text('Password updated.')));
                           } catch (e) {
                             setState(() {
                               _saving = false;

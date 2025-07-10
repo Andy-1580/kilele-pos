@@ -74,6 +74,7 @@ abstract class BaseProvider with ChangeNotifier {
     }
   }
 
+  @override
   void dispose() {
     _logger.d('Disposing ${runtimeType.toString()}');
     super.dispose();

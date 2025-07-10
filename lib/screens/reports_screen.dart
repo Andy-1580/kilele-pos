@@ -5,7 +5,7 @@ import '../widgets/sales_chart.dart';
 import '../widgets/report_summary.dart';
 
 class ReportsScreen extends StatefulWidget {
-  const ReportsScreen({Key? key}) : super(key: key);
+  const ReportsScreen({super.key});
 
   @override
   State<ReportsScreen> createState() => _ReportsScreenState();

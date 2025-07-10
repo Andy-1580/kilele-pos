@@ -1,10 +1,7 @@
 import 'package:flutter/material.dart';
 import '../models/product.dart';
-import '../services/supabase_service.dart';
-import 'base_provider.dart';
 
 class InventoryProvider extends ChangeNotifier {
-  final SupabaseService _supabaseService = SupabaseService();
   List<Product> _allProducts = [];
   List<Product> _filteredProducts = [];
   String _searchQuery = '';
@@ -112,4 +109,18 @@ class InventoryProvider extends ChangeNotifier {
       return null;
     }
   }
+
+  bool get isLoading => false;
+  List<Product> get lowStockItems => [];
+  List<Product> get outOfStockItems => [];
+  double get totalInventoryValue => 0;
+  void loadLowStockItems() {}
+  void sortProducts(String sortBy) {}
+  void addProduct(Product product) {}
+  void updateProduct(Product product) {}
+  void deleteProduct(String id) {}
+  void updateProductStock(String id, int newStock) {}
+  Future<void> exportInventory() async {}
+  Future<void> importInventory() async {}
+  Product? getProductByBarcode(String barcode) => findProductByBarcode(barcode);
 }
